@@ -25,6 +25,7 @@ var Application = React.createClass({
   render: function() {
     return (
       <div>
+        
         <div>
           {
             !this.state.server_connected ?
