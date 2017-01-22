@@ -1,17 +1,21 @@
 var logger = require("./log.js").getInstance("SerialManager");
+var config = require("./config.js");
 var SerialPort = require('serialport');
 
 var fs = require("fs");
 var USB_IDs = {};
 
-fs.readFile("usb.ids.txt", "ascii", function(err, data) {
-  if (err) return logger.warn("Failed to load usb.ids.txt: {0}".format(err));
+fs.readFile(config.usb_id_list, "ascii", function(err, data) {
+  if (err) return logger.warn("Failed to load {0}: {1}".format(config.usb_id_list, err));
   
   /*
     Parse http://www.linux-usb.org/usb.ids into an object for easy searching
   */
   
   var lines = data.split("\n");
+  
+  var vendor_count = 0;
+  var product_count = 0;
   
   var vendor = "";
   
@@ -27,14 +31,19 @@ fs.readFile("usb.ids.txt", "ascii", function(err, data) {
     }
     else if (/^\t/.test(line)) {
       // device line
+      
+      product_count++;
+      
       line = line.trim().split("  ");
       
       USB_IDs[vendor]["devices"][line[0]] = line[1];
     }
     else {
       // vendor line
-      line = line.split("  ");
       
+      vendor_count++;
+      
+      line = line.split("  ");
       vendor = line[0];
       
       USB_IDs[vendor] = {
@@ -43,6 +52,8 @@ fs.readFile("usb.ids.txt", "ascii", function(err, data) {
       }
     }
   }
+  
+  logger.info("Loaded {0} vendors and {1} products from {2}".format(vendor_count, product_count, config.usb_id_list));
 });
 
 var SerialManager = function() {
