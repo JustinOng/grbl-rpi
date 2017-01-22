@@ -30,6 +30,7 @@
     "koa-static": "^2.0.0",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
+    "serialport": "^4.0.7",
     "socket.io": "^1.7.2",
     "webpack": "^1.14.0",
     "winston": "^2.3.1"
