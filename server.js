@@ -20,3 +20,9 @@ var server = require("http").createServer(app.callback()).listen(80);
 logger.info("HTTP Server listening on port 80");
 
 var io = require("socket.io")(server);
+
+io.on("connection", function(socket) {
+  socket.on("register", function(room) {
+    socket.join(room);
+  });
+});
