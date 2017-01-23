@@ -2,10 +2,6 @@ var logger = require("./log.js").getInstance("SERVER");
 
 var SerialManager = require("./SerialManager.js");
 
-SerialManager.on("ports.onchange", function(ports) {
-  logger.info(ports);
-});
-
 var serve = require("koa-static");
 var koa = require("koa");
 var app = koa();
@@ -25,4 +21,8 @@ io.on("connection", function(socket) {
   socket.on("register", function(room) {
     socket.join(room);
   });
+});
+
+SerialManager.on("ports.onchange", function(ports) {
+  io.to("SerialManager").emit("ports.onchange", ports);
 });
