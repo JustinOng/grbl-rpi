@@ -1,3 +1,5 @@
+'use strict';
+
 var logger = require("./log.js").getInstance("SerialManager");
 var config = require("./config.js");
 var SerialPort = require('serialport');

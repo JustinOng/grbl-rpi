@@ -1,3 +1,5 @@
+'use strict';
+
 //http://stackoverflow.com/questions/14531232/using-winston-in-several-modules
 var winston = require("winston"),
     util = require("util"),

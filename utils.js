@@ -1,3 +1,5 @@
+'use strict';
+
 var os = require("os");
 
 //http://stackoverflow.com/a/4673436
