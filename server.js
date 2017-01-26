@@ -1,6 +1,7 @@
 var logger = require("./log.js").getInstance("SERVER");
 
 var SerialManager = require("./SerialManager.js");
+var Grbl = require("./Grbl.js");
 
 var serve = require("koa-static");
 var koa = require("koa");
@@ -26,3 +27,5 @@ io.on("connection", function(socket) {
 SerialManager.on("ports.onchange", function(ports) {
   io.to("SerialManager").emit("ports.onchange", ports);
 });
+
+let grbl_instance = new Grbl("COM6");
