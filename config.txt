@@ -1,0 +1,7 @@
+root crontab:
+
+@reboot /bin/chmod 666 /dev/ttyUSB0
+@reboot /sbin/agetty 115200 ttyUSB0 linux &
+
+run:
+sudo systemctl disable serial-getty@ttyAMA0.service
