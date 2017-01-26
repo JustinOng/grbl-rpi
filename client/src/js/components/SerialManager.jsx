@@ -4,12 +4,7 @@ var io = require("socket.io-client");
 var SerialManager = React.createClass({
   getInitialState: function() {
     return {
-      ports: {
-        COM6: {
-          vendor: "QinHeng Electronics",
-          product: "HL-340 USB-Serial adapter"
-        }
-      }
+      ports: {}
     }
   },
   componentWillMount: function() {    
