@@ -3,6 +3,9 @@
 let config = require("./config.js");
 let SerialPort = require("serialport");
 let logger = require("./log.js");
+let CSVCodes = require("./CSVCodes.js");
+
+let EventEmitter = require('events').EventEmitter;
 
 let Grbl = function(port_name) {
   let self = this;
@@ -33,17 +36,28 @@ let Grbl = function(port_name) {
     // handles welcome messages
     if (line.startsWith("Grbl")) {
       self.logger.info("GRBL initialised!");
+      
+      self.emit("initialised");
     }
     // handles alarm messages
     else if (line.startsWith("ALARM:")) {
+      let alarm_code = line.substring(6, line.length);
       
+      if (!alarm_code in CSVCodes.alarm_codes) {
+        logger.warn("Unknown error code: {0}".format(alarm_code));
+        return;
+      }
+      
+      logger.error("ALARM: {0}".format(CSVCodes.alarm_codes[alarm_code].message));
+      
+      self.emit("alarm", CSVCodes.alarm_codes[alarm_code]);
     }
     // handles settings messages
     else if (line.startsWith("$")) {
       
     }
     // handles feedback messages
-    else if (/^\[(.+)\]/.test(line) {
+    else if (/^\[(.+)\]/.test(line)) {
       
     }
     // handles real-time status reports
@@ -59,5 +73,7 @@ let Grbl = function(port_name) {
     self.serial_port.write("?");
   }, config.status_report_poll_interval);
 }
+
+util.inherits(SerialManager, EventEmitter);
 
 module.exports = Grbl;

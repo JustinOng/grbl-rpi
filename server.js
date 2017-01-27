@@ -28,4 +28,4 @@ SerialManager.on("ports.onchange", function(ports) {
   io.to("SerialManager").emit("ports.onchange", ports);
 });
 
-let grbl_instance = new Grbl("COM6");
+let grbl_instance = new Grbl("COM8");
