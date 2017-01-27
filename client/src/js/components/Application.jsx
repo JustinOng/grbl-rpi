@@ -2,6 +2,7 @@ var React = require("react");
 var io = require("socket.io-client");
 
 var SerialManager = require("./SerialManager.jsx")
+var Test = require("./Test.jsx")
 
 var Application = React.createClass({
   getInitialState: function() {
@@ -28,6 +29,7 @@ var Application = React.createClass({
     return (
       <div>
         <SerialManager/>
+        <Test/>
         <div>
           {
             !this.state.server_connected ?
