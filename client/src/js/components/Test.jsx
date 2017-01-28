@@ -4,7 +4,7 @@ var io = require("socket.io-client");
 var Test = React.createClass({
   getInitialState: function() {
     return {
-      ports: {}
+      cmd: ""
     }
   },
   componentWillMount: function() {    
@@ -12,18 +12,18 @@ var Test = React.createClass({
     
     self.socket = new io();
   },
-  send: function(cmd) {
-    var self = this;
-    
-    return function() {
-      self.socket.emit("command", cmd);
-    }
+  send: function() {    
+    this.socket.emit("command", this.state.cmd);
+    this.setState({cmd: ""});
+  },
+  handleChange: function(evt) {
+    this.setState({cmd: evt.target.value})
   },
   render: function() {    
     return (
       <div>
-        <button onClick={this.send("asdf\n$I")}>asdf</button>
-        <button onClick={this.send("$G")}>$G</button>
+        <textarea type="text" value={this.state.cmd} onChange={this.handleChange}/>
+        <button onClick={this.send}>Send</button>
       </div>
     );  
   }
