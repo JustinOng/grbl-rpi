@@ -4,40 +4,31 @@ let config = require("./config.js");
 let logger = require("./log.js");
 let CSVCodes = require("./CSVCodes.js");
 
-let SerialPort = require("serialport");
+let SerialManager = require("./SerialManager.js");
 let util = require("util");
 
 let EventEmitter = require('events').EventEmitter;
 
-let Grbl = function(port_name) {
+let Grbl = function() {
   let self = this;
   
-  this.port_name = port_name;
-  
-  this.logger = logger.getInstance("GRBL - {0}".format(this.port_name));
+  this.logger = logger.getInstance("GRBL");
   
   this.pending_commands = [];
-  
-  this.serial_port = new SerialPort(port_name, {
-    baudRate: config.uart_rate,
-    parser: SerialPort.parsers.readline("\r\n")
-  });
-  
-  this.serial_port.on("open", function(data) {
-    self.logger.info("Port open");
-  });
-  
-  this.serial_port.on("close", function(data) {
-    self.logger.info("Port closed");
-  });
-  
-  this.serial_port.on("data", self.process_line.bind(self));
   
   /*setInterval(function() {
     if (!self.serial_port.isOpen()) return;
     
     self.serial_port.write("?");
   }, config.status_report_poll_interval);*/
+}
+
+Grbl.prototype.begin = function(port_name) {
+  this.port_name = port_name;
+  
+  SerialManager.begin(port_name);
+  
+  SerialManager.on("data", this.process_line.bind(this));
 }
 
 Grbl.prototype.process_line = function(line) {
@@ -73,9 +64,9 @@ Grbl.prototype.process_line = function(line) {
     self.emit("alarm", CSVCodes.alarm_codes[alarm_code]);
   }
   // handles settings messages
-  else if (line.startsWith("$")) {
+  //else if (line.startsWith("$")) {
     
-  }
+  //}
   // handles non-queried feedback messages
   else if (/^\[MSG:(.+)\]/.test(line)) {
     let message = line.substring(5, line.length-1);
@@ -102,11 +93,11 @@ Grbl.prototype.send_command = function(input) {
   
   let cmds = input.split(/\r?\n/);
   
-  for(var cmd of cmds) {    
+  for(let cmd of cmds) {    
     this.pending_commands.push(cmd);
     
     this.logger.info("Sending {0}".format(cmd));
-    this.serial_port.write(cmd+"\n");
+    SerialManager.write(cmd+"\n");
   }
 }
 

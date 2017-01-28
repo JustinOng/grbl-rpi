@@ -18,7 +18,8 @@ logger.info("HTTP Server listening on port 80");
 
 var io = require("socket.io")(server);
 
-let grbl_instance = new Grbl("COM8");
+let grbl_instance = new Grbl();
+grbl_instance.begin("COM8");
 
 function emit_initial_data() {
   io.to("SerialManager").emit("ports.onchange", SerialManager.ports);

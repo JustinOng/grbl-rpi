@@ -72,11 +72,42 @@ let SerialManager = function() {
   this.ports = [];
   
   setInterval(function() {
-    self.update();
+    self.update_list();
   }, 500);
 }
 
-SerialManager.prototype.update = function() {
+SerialManager.prototype.begin = function(port_name) {
+  var self = this;
+  
+  this.port_name = port_name;
+  
+  this.serial_port = new SerialPort(port_name, {
+    baudRate: config.uart_rate,
+    parser: SerialPort.parsers.readline("\r\n")
+  });
+  
+  this.serial_port.on("open", function() {
+    logger.info("{0} open".format(self.port_name));
+    self.emit("open")
+  });
+  
+  this.serial_port.on("close", function() {
+    logger.info("{0} closed".format(self.port_name));
+    self.emit("close");
+  });
+  
+  this.serial_port.on("data", function(line) {
+    self.emit("data", line);
+  });
+}
+
+SerialManager.prototype.write = function(data) {
+  if (!this.serial_port) return;
+  
+  this.serial_port.write(data);
+}
+
+SerialManager.prototype.update_list = function() {
   let self = this;
   
   SerialPort.list(function (err, ports) {
