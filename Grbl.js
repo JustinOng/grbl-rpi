@@ -30,6 +30,9 @@ let Grbl = function() {
 
     self.serial_port.write("?");
   }, config.status_report_poll_interval);*/
+  setInterval(function() {
+    self.logger.info("Pending commands: {0}, Active commands: {1}".format(self.pending_commands.length, self.active_commands.length));
+  }, 1000);
 }
 
 Grbl.prototype.begin = function(port_name) {
@@ -168,7 +171,6 @@ Grbl.prototype._active_commands_length = function() {
 
 Grbl.prototype._send_buffered_commands = function() {
   if (this.pending_commands.length === 0) return;
-  if (this._active_commands_length >= config.GRBL_RX_BUFFER_SIZE) return;
 
   for(let command of this.active_commands) {
     for(let eeprom_command of Commands.requests.eeprom_write) {
@@ -181,11 +183,12 @@ Grbl.prototype._send_buffered_commands = function() {
     }
   }
 
+  if ((this._active_commands_length()+this.pending_commands[0].length) >= config.GRBL_RX_BUFFER_SIZE) return;
+
   let command = this.pending_commands.shift();
   SerialManager.write(command);
 
   this.active_commands.push(command);
-  this.logger.info(this.active_commands);
 
   this._send_buffered_commands();
 }
