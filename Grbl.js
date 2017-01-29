@@ -208,7 +208,13 @@ Grbl.prototype.acknowledge_command = function(line) {
     this.command_response_buffer = [];
   }
 
-  this.logger.info("Received ack '{0}' for '{1}'".format(line, command));
+  //this.logger.info("Received ack '{0}' for '{1}'".format(line, command));
+
+  let match = line.match(/^error:(\d+)/);
+  if (match) {
+    this.logger.warn("For {0}:".format(command));
+    this.logger.warn("Error {0}: {1} - {2}".format(match[1], CSVCodes.error_codes[match[1]].message, CSVCodes.error_codes[match[1]].description))
+  }
 
   this._send_buffered_commands();
 }
