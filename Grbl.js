@@ -124,8 +124,23 @@ Grbl.prototype.has_active_commands = function() {
   return this.active_commands.length > 0;
 }
 
-Grbl.prototype.preparse = function(input) {
-  return input.replace(/ /g, "").toUpperCase();
+Grbl.prototype.preparse = function(cmd) {
+  cmd = cmd.replace(/ /g, "").toUpperCase();
+
+  // according to http://www.cnczone.com/forums/g-code-programing/103434-coments-g-code-post763510.html#post763510
+  // and http://linuxcnc.org/docs/html/gcode/overview.html
+  // comments are lines that start with % OR
+  // lines that contain ; have comments after ;
+  // a set of parenthesis contains comments
+  if (cmd.length === 0 || cmd.startsWith("%")) return false;
+
+  if (cmd.indexOf(";") > -1) {
+    cmd = cmd.substring(0, cmd.indexOf(";")-1);
+  }
+
+  cmd = cmd.replace(/\(.+\)/g, "");
+
+  return cmd.trim();
 }
 
 Grbl.prototype.send_command = function(input) {
@@ -134,13 +149,15 @@ Grbl.prototype.send_command = function(input) {
   for(let cmd of cmds) {
     cmd = this.preparse(cmd);
 
+    if (!cmd) continue;
+
     this.pending_commands.push(cmd+"\n");
 
     //this.logger.info("Sending {0}".format(cmd));
     //SerialManager.write(cmd+"\n");
-
-    this._send_buffered_commands();
   }
+
+  this._send_buffered_commands();
 }
 
 Grbl.prototype._active_commands_length = function() {
