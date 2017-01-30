@@ -27,11 +27,47 @@ let Grbl = function() {
 
   this.state = new Proxy({
     machine_state: "Idle",
-    machine_substate: false
+    machine_substate: false,
+    machine_position: {
+      x: 0,
+      y: 0,
+      z: 0
+    },
+    work_position: {
+      x: 0,
+      y: 0,
+      z: 0
+    },
+    work_coordinate_offset: {
+      x: 0,
+      y: 0,
+      z: 0
+    },
+    feed_rate: 0,
+    spindle_speed: false,
+
+    x_limit: false,
+    y_limit: false,
+    z_limit: false,
+
+    probe: false,
+
+    door_open_pin: false,
+    hold_pin: false,
+    soft_reset_pin: false,
+    cycle_start_pin: false,
+
+    override_feed: 100,
+    override_rapid: 100,
+    override_spindle: 100,
+
+    spindle: false,
+    flood_coolant: false,
+    mist_coolant: false
   }, {
     set: function(obj, prop, val) {
       // if value has not changed, do nothing
-      if (obj["p"+prop] && val === obj["p"+prop]) {
+      if (obj["p"+prop] && JSON.stringify(val) === JSON.stringify(obj["p"+prop])) {
 
       }
       else {
@@ -121,6 +157,97 @@ Grbl.prototype.process_line = function(line) {
     else {
       self.state.machine_state = full_state;
       self.state.machine_substate = false;
+    }
+
+    for(let field of data_fields) {
+      let data;
+
+      if (field.startsWith("MPos:")){
+        data = field.substring(5).split(",");
+        self.state.machine_position = {
+          x: parseFloat(data[0]),
+          y: parseFloat(data[1]),
+          z: parseFloat(data[2])
+        };
+
+        self.state.work_position = {
+          x: self.state.machine_position.x - self.state.work_coordinate_offset.x,
+          y: self.state.machine_position.y - self.state.work_coordinate_offset.y,
+          z: self.state.machine_position.z - self.state.work_coordinate_offset.z
+        };
+      }
+      else if (field.startsWith("WPos:")) {
+        data = field.substring(5).split(",");
+        self.state.work_position = {
+          x: parseFloat(data[0]),
+          y: parseFloat(data[1]),
+          z: parseFloat(data[2])
+        }
+
+        self.state.machine_position = {
+          x: self.state.work_position.x + self.state.work_coordinate_offset.x,
+          y: self.state.work_position.y + self.state.work_coordinate_offset.y,
+          z: self.state.work_position.z + self.state.work_coordinate_offset.z
+        };
+      }
+      else if (field.startsWith("WCO:")) {
+        data = field.substring(5).split(",");
+
+        self.state.work_coordinate_offset = {
+          x: parseFloat(data[0]),
+          y: parseFloat(data[1]),
+          z: parseFloat(data[2])
+        }
+      }
+      else if (field.startsWith("F:")) {
+        self.state.feed_rate = parseInt(field.substring(2), 10);
+        self.state.spindle_speed = false;
+      }
+      else if (field.startsWith("FS:")) {
+        data = field.substring(2).split(",");
+        self.state.feed_rate = parseInt(data[0], 10);
+        self.state.spindle_speed = parseInt(data[1], 10);
+      }
+      else if (field.startsWith("Pn:")) {
+        data = field.substring(3).split("");
+
+        self.state.x_limit = data.indexOf("X") > -1;
+        self.state.y_limit = data.indexOf("Y") > -1;
+        self.state.z_limit = data.indexOf("Z") > -1;
+
+        self.state.probe = data.indexOf("P") > -1;
+
+        self.state.door_open_pin = data.indexOf("D") > -1;
+        self.state.hold_pin = data.indexOf("H") > -1;
+        self.state.soft_reset_pin = data.indexOf("R") > -1;
+        self.state.cycle_start_pin = data.indexOf("S") > -1;
+      }
+      else if (field.startsWith("Ov:")) {
+        data = field.substring(3).split(",");
+
+        self.state.override_feed = parseInt(data[0]);
+        self.state.override_rapid = parseInt(data[1]);
+        self.state.override_spindle = parseInt(data[2]);
+      }
+      else if (field.startsWith("A:")) {
+        data = field.substring(2).split("");
+
+        if (data.indexOf("S") > -1) {
+          self.state.spindle = "CW";
+        }
+        else if (data.indexOf("C") > -1) {
+          self.state.spindle = "CCW";
+        }
+        else {
+          self.state.spindle = false;
+        }
+
+        self.state.flood_coolant = data.indexOf("F") > -1;
+        self.state.mist_coolant = data.indexOf("M") > -1;
+      }
+      else {
+        self.logger.warn("Unhandled status report field: {0}".format(field));
+      }
     }
   }
   else {

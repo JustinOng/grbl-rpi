@@ -45,3 +45,7 @@ SerialManager.on("ports.onchange", function(ports) {
 grbl_instance.on("machine_state", function(state) {
   logger.info("Machine state: {0}".format(state));
 });
+
+grbl_instance.on("machine_position", function(position) {
+  logger.info("Machine position: {0}".format(position));
+});
