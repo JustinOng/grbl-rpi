@@ -25,14 +25,33 @@ let Grbl = function() {
   // command_response_buffer buffers the response from Grbl for a particular command
   this.command_response_buffer = [];
 
-  /*setInterval(function() {
-    if (!self.serial_port.isOpen()) return;
+  this.state = new Proxy({
+    machine_state: "Idle",
+    machine_substate: false
+  }, {
+    set: function(obj, prop, val) {
+      // if value has not changed, do nothing
+      if (obj["p"+prop] && val === obj["p"+prop]) {
 
-    self.serial_port.write("?");
-  }, config.status_report_poll_interval);*/
+      }
+      else {
+        // else, write new "previous" value and emit it
+        obj["p"+prop] = val;
+        self.emit(prop, val);
+      }
+
+      obj[prop] = val;
+
+      return true;
+    }
+  });
+
   setInterval(function() {
+    SerialManager.write("?");
+  }, config.status_report_poll_interval);
+  /*setInterval(function() {
     self.logger.info("Pending commands: {0}, Active commands: {1}".format(self.pending_commands.length, self.active_commands.length));
-  }, 1000);
+  }, 1000);*/
 }
 
 Grbl.prototype.begin = function(port_name) {
@@ -90,7 +109,19 @@ Grbl.prototype.process_line = function(line) {
   // handles real-time status reports
   else if (/^<(.+)>/.test(line)) {
     let data_fields = line.substring(1, line.length-1).split("|");
-    //console.log(data_fields);
+
+    let full_state = data_fields.shift();
+
+    let match = full_state.match(/^Hold:(\d+)/);
+    if (match) {
+      // Hold with substate
+      self.state.machine_state = "Hold";
+      self.state.machine_substate = CSVCodes.hold_substates[match[1]];
+    }
+    else {
+      self.state.machine_state = full_state;
+      self.state.machine_substate = false;
+    }
   }
   else {
     if (!this.has_active_commands()) {

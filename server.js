@@ -1,3 +1,5 @@
+'use strict';
+
 var logger = require("./log.js").getInstance("SERVER");
 
 var SerialManager = require("./SerialManager.js");
@@ -30,7 +32,7 @@ io.on("connection", function(socket) {
     socket.join(room);
     emit_initial_data();
   });
-  
+
   socket.on("command", function(cmd) {
     grbl_instance.send_command(cmd);
   });
@@ -38,4 +40,8 @@ io.on("connection", function(socket) {
 
 SerialManager.on("ports.onchange", function(ports) {
   io.to("SerialManager").emit("ports.onchange", ports);
+});
+
+grbl_instance.on("machine_state", function(state) {
+  logger.info("Machine state: {0}".format(state));
 });

@@ -63,7 +63,7 @@ csv_data = fs.readFileSync("./csv_codes/setting_codes_en_US.csv", {
 
 records = parse(csv_data);
 // strip out first header row
-records.shift();  
+records.shift();
 
 data = {};
 for (let record of records) {
@@ -75,3 +75,12 @@ for (let record of records) {
 }
 
 module.exports.setting_codes = data;
+
+module.exports.hold_substates = [
+  "Hold complete. Ready to resume.",
+  "Hold in-progress. Reset will throw an alarm.",
+  "Door closed. Ready to resume.",
+  "Machine stopped. Door still ajar. Can't resume until closed.",
+  "Door opened. Hold (or parking retract) in-progress. Reset will throw an alarm.",
+  "Door closed and resuming. Restoring from park, if applicable. Reset will throw an alarm."
+];
