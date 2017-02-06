@@ -67,7 +67,7 @@ let Grbl = function() {
   }, {
     set: function(obj, prop, val) {
       // if value has not changed, do nothing
-      if (obj["p"+prop] && JSON.stringify(val) === JSON.stringify(obj["p"+prop])) {
+      if (typeof obj["p"+prop] !== "undefined" && JSON.stringify(val) === JSON.stringify(obj["p"+prop])) {
 
       }
       else {
